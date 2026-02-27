@@ -1,106 +1,132 @@
-document.addEventListener("DOMContentLoaded", function () {
+/* =========================================================
+   ARK Realty Homes - script.js (CLEAN + WORKING)
+   - Hero background image slider (with fade)
+   - Counter animation (runs once when visible)
+   - Commitment cards reveal on scroll
+   - Hamburger menu toggle + close on link click
+   NOTE: Remove <img id="heroSlider"> from hero if using bg slider
+   ========================================================= */
 
-  /* ================= IMAGE SLIDER ================= */
+document.addEventListener("DOMContentLoaded", () => {
 
-  const images = [
-    "assets/images/welcome section.png",
-     "assets/images/hero.jpg" ,
-     "assets/images/welcome 21.jpg" ,
-  ];
-
-  const slider = document.getElementById("heroSlider");
-  let index = 0;
-
-  function changeImage() {
-    index++;
-
-    if (index >= images.length) {
-      index = 0;
-    }
-
-    slider.style.opacity = "0";
-
-    setTimeout(() => {
-      slider.src = images[index];
-      slider.style.opacity = "1";
-    }, 400);
-  }
-
-  setInterval(changeImage, 3000);
-
-
-  /* ================= HERO BACKGROUND ANIMATION ================= */
+  /* ================= HERO BACKGROUND IMAGE SLIDER ================= */
 
   const hero = document.querySelector(".hero");
-  let angle = 0;
 
-  function animateBackground() {
-    angle += 0.5;
+  // If hero exists, run background slider
+  if (hero) {
+    const images = [
+      "assets/images/hero1.jpg",
+      "assets/images/hero 2.jpg",
+      "assets/images/hero 3.jpg",
+    ];
 
-    hero.style.background = `
-      linear-gradient(
-        ${angle}deg,
-        #cec8c8,
-        #f8f6f1,
-        #2557a8
-      )
-    `;
+    // Preload images for smoother transition
+    images.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
 
-    requestAnimationFrame(animateBackground);
+    let index = 0;
+
+    // Ensure base bg properties
+    hero.style.backgroundSize = "cover";
+    hero.style.backgroundPosition = "center";
+    hero.style.backgroundRepeat = "no-repeat";
+    hero.style.transition = "opacity 350ms ease";
+
+    function setHeroBg(i) {
+      // handles spaces in file names reliably
+      const safeUrl = encodeURI(images[i]);
+      hero.style.backgroundImage = `url("${safeUrl}")`;
+    }
+
+    // initial
+    setHeroBg(index);
+
+    // change
+    setInterval(() => {
+      hero.style.opacity = "0.92";
+
+      setTimeout(() => {
+        index = (index + 1) % images.length;
+        setHeroBg(index);
+        hero.style.opacity = "1";
+      }, 350);
+    }, 3000);
   }
 
-  animateBackground();
 
-});
+  /* ================= COMMITMENT CARDS REVEAL ================= */
+  const cards = document.querySelectorAll(".commitment-card");
 
-/* ================= COUNTER ANIMATION ================= */
+  if (cards.length) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("active");
+      });
+    }, { threshold: 0.3 });
 
-const counters = document.querySelectorAll(".counter");
+    cards.forEach((card) => observer.observe(card));
+  }
 
-counters.forEach(counter => {
-  const updateCount = () => {
-    const target = +counter.getAttribute("data-target");
-    const count = +counter.innerText;
 
-    const increment = target / 100;
+  /* ================= HAMBURGER MENU ================= */
+  const hamburger = document.getElementById("hamburger");
+  const navMenu = document.querySelector(".nav-menu");
 
-    if (count < target) {
-      counter.innerText = Math.ceil(count + increment);
-      setTimeout(updateCount, 20);
-    } else {
-      counter.innerText = target;
-    }
-  };
+  if (hamburger && navMenu) {
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      navMenu.classList.toggle("active");
+    });
 
-  updateCount();
-});
+    document.querySelectorAll(".nav-menu a").forEach((link) => {
+      link.addEventListener("click", () => {
+        hamburger.classList.remove("active");
+        navMenu.classList.remove("active");
+      });
+    });
+  }
 
-/* ================= SCROLL ANIMATION ================= */
-const cards = document.querySelectorAll('.commitment-card');
 
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('active');
-    }
-  });
-}, { threshold: 0.3 });
+  /* ================= COUNTERS (RUN ONCE WHEN VISIBLE) ================= */
+  const counters = document.querySelectorAll(".counter");
 
-cards.forEach(card => observer.observe(card));
+  if (counters.length) {
+    const runCounter = (counter) => {
+      const target = Number(counter.getAttribute("data-target")) || 0;
+      const duration = 1200; // ms
+      const start = 0;
+      const startTime = performance.now();
 
-/* ================= HAMBURGER MENU ================= */
-const hamburger = document.getElementById("hamburger");
-const navMenu = document.querySelector(".nav-menu");
+      const step = (now) => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const value = Math.floor(start + (target - start) * progress);
+        counter.innerText = value.toLocaleString("en-IN");
 
-hamburger.addEventListener("click", () => {
-  hamburger.classList.toggle("active");
-  navMenu.classList.toggle("active");
-});
+        if (progress < 1) requestAnimationFrame(step);
+        else counter.innerText = target.toLocaleString("en-IN");
+      };
 
-// Close when clicking link
-document.querySelectorAll(".nav-menu a").forEach(link => {
-  link.addEventListener("click", () => {
-    hamburger.classList.remove("active");
-    navMenu.classList.remove("active");
-  });
+      requestAnimationFrame(step);
+    };
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const counter = entry.target;
+
+        // Run only once
+        if (counter.dataset.done === "true") return;
+        counter.dataset.done = "true";
+
+        runCounter(counter);
+      });
+    }, { threshold: 0.35 });
+
+    counters.forEach((counter) => counterObserver.observe(counter));
+  }
+
 });
