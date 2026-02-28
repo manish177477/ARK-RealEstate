@@ -157,12 +157,15 @@ section {
 .hero{
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  /* Instead of min-height:100vh; use a responsive height */
+  min-height: clamp(520px, 85vh, 900px);
+
   display: flex;
   align-items: center;
   overflow: hidden;
+
   padding-inline: var(--container-x);
-  padding-block: 0 !important;
+  padding-block: clamp(32px, 6vh, 90px);
 
   background-size: cover;
   background-position: center;
@@ -193,15 +196,16 @@ section {
 
 /* ================= GLASS CARD ================= */
 .hero-text{
-  width: min(420px, 92vw);   /* narrow */
-  min-height: 230px;         /* tall / vertical */
-  padding: 28px 22px;
+  width: clamp(280px, 38vw, 420px);
+  min-height: auto;
+
+  padding: clamp(16px, 2.4vw, 28px) clamp(14px, 2vw, 22px);
   border-radius: 18px;
 
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
+  gap: clamp(6px, 1.2vw, 10px);
 
   background: rgba(255,255,255,0.12);
   border: 1px solid rgba(255,255,255,0.25);
@@ -209,15 +213,14 @@ section {
   -webkit-backdrop-filter: blur(14px);
 
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  color: #fff;
+  color: #000000;
 }
 /* Make headings readable on glass */
-.hero-text h1,
-.hero-text h2,
-.hero-text h3,
-.hero-text p{
-  color: #fff;
-}
+.hero-text h1{ font-size: clamp(26px, 3vw, 44px); }
+.hero-text h3{ font-size: clamp(14px, 1.4vw, 18px); }
+.hero-text h2{ font-size: clamp(18px, 2vw, 28px); }
+.hero-text p { font-size: clamp(13px, 1.2vw, 16px); }
+
 
 .hero-text p{
   opacity: 0.92;
@@ -272,19 +275,47 @@ section {
   transform: translateX(-6px);
   transition: transform .25s ease;
 }
+/* default hidden */
+.hero-card-mobile{ display:none; }
 
-/* Mobile: bottom right */
 @media (max-width: 768px){
-  .sticky-cta{
-    top: auto;
-    bottom: 16px;
-    transform: none;
+
+  /* ✅ HERO becomes image-only and properly visible */
+  .hero{
+    min-height: 35vh;          /* good phone banner height */
+    padding-block: 0;
+    align-items: stretch;
+
+    background-size: cover;
+    background-position: center top; /* helps avoid bad crop */
   }
-  .side-tab{
-    height: 140px;
-    width: 50px;
+
+  /* lighter overlay on phone so image looks better */
+  .hero::before{
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.25),
+      rgba(0,0,0,0.08),
+      rgba(0,0,0,0)
+    );
+  }
+
+  /* ✅ hide the glass card inside hero */
+  .hero .hero-text{ display:none; }
+
+  /* ✅ show glass card below hero */
+  .hero-card-mobile{
+    display:block;
+    padding: 14px var(--container-x) 10px;
+    margin-top: 12px;          /* completely down (no overlap) */
+  }
+
+  .hero-card-mobile .hero-text{
+    width: min(92vw, 420px);
+    margin: 0 auto;
   }
 }
+
 /* =========================================================
    WELCOME
    ========================================================= */
